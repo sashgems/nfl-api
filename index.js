@@ -1,29 +1,64 @@
 const express = require('express')
-var app = express()
-var teams = require('./teams.json')
+
+const app = express()
+//This creates an instance of an Express application
+
+const models = require('./models') 
+
+//This is instead of the './teams.json file, which would only show us
+//results from that file whereas this requires the models folder which connects to our db
+
+const bodyParser = require('body-parser')
+//Middleware that takes a string and turns it into a JS object out of that string that we can then use
+
+const Op = require('sequelize').Op 
+//Operator that can be used to  make more complex comparisons
 
 
-app.get('/teams',(request,response) => {
+
+app.get('/teams', async (request, response,) => {
+   const teams = await models.Teams.findAll()
     response.send(teams)
 })
-    
-app.get('/teams/:id/', (request, response) => {
-    let teamById = teams.filter( (item) => {
-        return item.id == request.params.id
-        
+ 
+app.get('/teams/:filter/', async (request, response) => {
+    //Short hand for const filter = request.params.filter
+    const {filter} = request.params
+    const match = await models.Teams.findAll({
+        where: {  [Op.or]: [{ id: filter},
+                            {abbreviation: filter},
+                            {division: filter}]}
     })
-    response.send(teamById)
-
-})
-
-app.get('/teams/:id/:abbreviation/', (request, response) => {
-    let teamByAbbreviation = teams.filter( (team) => {
-       return team.abbreviation == request.params.abbreviation
-    })  
+      if(match) {
+        response.send(match)
+    } else {
+        response.status(404).send('Please provide a valud id, abbreviation, or division')
+    }
+    })
     
-    response.send(teamByAbbreviation)
     
-}) 
+ app.post('/teams', bodyParser.json(), async (request, response) => {
+        const body = request.body
+    
+        if (
+           !body.location || 
+           !body.mascot || 
+           !body.abbreviation || 
+           !body.conference || 
+           !body.division
+        ) {
+          response.status(400).send('The following attributes are required: location, mascot, abbreviation, conference and division.')
+        }
+    
+        const newTeam = await models.Teams.create({ location,
+                                                    mascot,
+                                                    abbreviation,
+                                                    conference,
+                                                    division })
+    
+        response.status(201).send(newTeam);
+    })
+ 
 
 app.all('*', (request, response) => {
     console.log({request})
@@ -33,10 +68,3 @@ app.all('*', (request, response) => {
 app.listen(1338, () => {
     console.log('We are listening')
 })
-
-// const port = process.env.PORT || 3000; 
-// app.listen(port, () => {
-//     console.log(`Listtening on ${port}...`)
-// })
-
-module.exports = app
