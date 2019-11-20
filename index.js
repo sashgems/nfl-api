@@ -25,9 +25,13 @@ app.get('/teams/:filter/', async (request, response) => {
     //Short hand for const filter = request.params.filter
     const {filter} = request.params
     const match = await models.Teams.findAll({
-        where: {  [Op.or]: [{ id: filter},
+        where: {  [Op.or]: [{location: filter},
+                            {mascot: filter},
                             {abbreviation: filter},
-                            {division: filter}]}
+                            {league: filter},
+                            {division: filter}
+                        
+        ]}
     })
       if(match) {
         response.send(match)
@@ -44,17 +48,13 @@ app.get('/teams/:filter/', async (request, response) => {
            !body.location || 
            !body.mascot || 
            !body.abbreviation || 
-           !body.conference || 
+           !body.league|| 
            !body.division
         ) {
-          response.status(400).send('The following attributes are required: location, mascot, abbreviation, conference and division.')
+          response.status(400).send('The following attributes are required: location, mascot, abbreviation, league and division.')
         }
     
-        const newTeam = await models.Teams.create({ location,
-                                                    mascot,
-                                                    abbreviation,
-                                                    conference,
-                                                    division })
+        const newTeam = await models.Teams.create( body )
     
         response.status(201).send(newTeam);
     })
