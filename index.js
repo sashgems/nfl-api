@@ -12,9 +12,19 @@ app.use('/client', express.static('client'))
 // used for sendFile
 app.use(express.static('client'))
 
+// To extract the form data, we use the express.urlencoded() middleware
+app.use(express.urlencoded())
+
 app.get('/', (request, response) => {
   // this sendFile function works when we have used the static configuration first
   response.sendFile('./client/index.html')
+})
+
+app.post('/basic-info', (request, response) => {
+  // use the servers console to show what came in
+  console.log(request.body)
+  // echo info back to the user
+  response.send(`Got it. Thank you ${request.body.username}`)
 })
 
 app.get('/api/teams', async (request, response) => {
