@@ -1,4 +1,5 @@
 const express = require('express')
+const fileUpload = require('express-fileupload')
 const bodyParser = require('body-parser')
 const Op = require('sequelize').Op
 const models = require('./models')
@@ -15,14 +16,33 @@ app.use(express.static('client'))
 // To extract the form data, we use the express.urlencoded() middleware
 app.use(express.urlencoded())
 
+// to handle a file upload and save it
+// per https://github.com/richardgirges/express-fileupload/tree/master/example#basic-file-upload
+app.use(fileUpload())
+
 app.get('/', (request, response) => {
   // this sendFile function works when we have used the static configuration first
   response.sendFile('./client/index.html')
 })
 
 app.post('/basic-info', (request, response) => {
-  // use the servers console to show what came in
-  console.log(request.body)
+  // use the servers console to show what files came in
+  console.log(request.files)
+
+  //__dirname is the current directory 
+  console.log({__dirname})
+
+  const uploadPath = `${__dirname}/_uploads`
+
+  console.log({uploadPath})
+
+  // @TODO: Give the file a random name to support multiple users uploading files
+  request.files.stlfile.mv(`${uploadPath}/${request.files.stlfile.name}`, (error) => {
+    if (error) {
+      return response.status(500).send(error).end()
+    }
+  })
+
   // echo info back to the user
   response.send(`Got it. Thank you ${request.body.username}`)
 })

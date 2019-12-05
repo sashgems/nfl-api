@@ -11,11 +11,14 @@
 
 <h1>Getting there with JS on the way</h1>
 
-<form method="POST" action="/basic-info">
+<form method="POST" action="/basic-info" encType="multipart/form-data">
     <label>Name:</label>
     <input type="text" placeholder="enter your name" name="username">
     <input type="text" placeholder="enter your age" name="age">
-    <input type="submit" value="Click Me">
+
+    <input type="file" name="stlfile" accept=".stl">
+
+    <input type="submit" value="Generate Model">
 </form>
 
 
