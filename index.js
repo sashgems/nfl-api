@@ -3,6 +3,9 @@ const fileUpload = require('express-fileupload')
 const bodyParser = require('body-parser')
 const Op = require('sequelize').Op
 const models = require('./models')
+const NodeStl = require('node-stl')
+
+const request = require('request');
 
 const app = express()
 
@@ -25,6 +28,24 @@ app.get('/', (request, response) => {
   response.sendFile('./client/index.html')
 })
 
+
+const requestSettings = {
+   method: 'GET',
+   url: 'https://s3.amazonaws.com/minifactory-stl/WALLY_1plate.stl',
+   encoding: null,
+}
+
+app.get('/stl-test', async (req, res) => {
+  let stl = ''
+  const result = await request(requestSettings, async function(error, response, body) {
+    stl = new NodeStl(body)
+    console.log({stl})
+    return true
+  })
+  res.send(stl) 
+})
+
+
 app.post('/basic-info', (request, response) => {
   // use the servers console to show what files came in
   console.log(request.files)
@@ -36,15 +57,21 @@ app.post('/basic-info', (request, response) => {
 
   console.log({uploadPath})
 
-  // @TODO: Give the file a random name to support multiple users uploading files
-  request.files.stlfile.mv(`${uploadPath}/${request.files.stlfile.name}`, (error) => {
+  // @TODO: Make sure this save is working correctly
+  let stlFilePath = `${uploadPath}/${request.files.stlfile.name}`
+  request.files.stlfile.mv(stlFilePath, (error) => {
     if (error) {
       return response.status(500).send(error).end()
     }
   })
 
+  // process the stl file raw content as uploaded
+  let stlData = new NodeStl(request.files.stlfile.data, {density: 1.04})
+
+  console.log(stlData.volume)
+
   // echo info back to the user
-  response.send(`Got it. Thank you ${request.body.username}`)
+  response.send(stlData)
 })
 
 app.get('/api/teams', async (request, response) => {

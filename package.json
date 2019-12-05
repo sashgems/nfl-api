@@ -24,6 +24,8 @@
     "express": "^4.17.1",
     "express-fileupload": "^1.1.6",
     "mysql2": "^1.7.0",
+    "node-stl": "^0.7.0",
+    "request": "^2.88.0",
     "sequelize": "^5.18.1"
   },
   "devDependencies": {
